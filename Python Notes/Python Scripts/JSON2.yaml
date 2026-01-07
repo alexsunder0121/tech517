@@ -1,0 +1,9 @@
+address:
+  city: Anytown
+  street: 123 Main St
+age: 30
+courses:
+- Python
+- DevOps
+isStudent: false
+name: John Doe
