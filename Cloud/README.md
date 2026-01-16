@@ -113,7 +113,7 @@ Disadvantages
         
         • On-going costs 
 
-• CapEx = Capitl Expenditure 
+• CapEx = Capital Expenditure 
         
         • Upfront costs 
 

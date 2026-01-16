@@ -2,6 +2,25 @@
 
 These are the key commands from your history, grouped by purpose with short explanations.
 
+- [Linux Command Notes (Clean Revision)](#linux-command-notes-clean-revision)
+  - [1) Basics and System Info](#1-basics-and-system-info)
+  - [2) Navigating the File System](#2-navigating-the-file-system)
+  - [3) Viewing and Editing Files](#3-viewing-and-editing-files)
+  - [4) Searching Inside Files](#4-searching-inside-files)
+  - [5) Downloading Files from the Internet](#5-downloading-files-from-the-internet)
+  - [6) File and Folder Management](#6-file-and-folder-management)
+  - [7) Seeing Folder Structure](#7-seeing-folder-structure)
+  - [8) Permissions and Running Scripts](#8-permissions-and-running-scripts)
+  - [9) Installing and Updating Packages (Ubuntu)](#9-installing-and-updating-packages-ubuntu)
+  - [10) Services (nginx with systemctl)](#10-services-nginx-with-systemctl)
+  - [11) Switching User](#11-switching-user)
+- [Quick Common Command Flow (Simple Task)](#quick-common-command-flow-simple-task)
+  - [Create and edit a file](#create-and-edit-a-file)
+  - [Create folders and organise files](#create-folders-and-organise-files)
+  - [Install a tool and verify](#install-a-tool-and-verify)
+  - [Install nginx and check it](#install-nginx-and-check-it)
+
+
 ---
 
 ## 1) Basics and System Info
