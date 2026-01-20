@@ -17,7 +17,8 @@
 export DEBIAN_FRONTEND=noninteractive
 
 echo "Updating package lists..."
-sudo apt-get update -y
+sudo apt update -y
+sudo apt upgrade -y
 
 echo "Upgrading system packages..."
 sudo NEEDRESTART_MODE=a apt-get dist-upgrade -y

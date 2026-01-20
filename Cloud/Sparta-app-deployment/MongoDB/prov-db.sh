@@ -48,3 +48,51 @@ nohup npm start > app.log 2>&1 &
 
 echo "App should now be running on port 3000"
 echo "Check logs: tail -f ~/tech517-sparta-app/app/app.log"
+
+
+
+
+
+
+
+
+
+
+#could be used if needed - backup script 
+
+
+#!/bin/bash
+
+# Simple MongoDB 7 Provision Script (Ubuntu 22.04)
+
+export DEBIAN_FRONTEND=noninteractive
+
+echo "Update system..."
+sudo apt update -y
+sudo NEEDRESTART_MODE=a apt-get dist-upgrade -y
+
+echo "Install tools..."
+sudo apt install -y curl gnupg
+
+echo "Add MongoDB 7 key..."
+curl -fsSL https://pgp.mongodb.com/server-7.0.asc \
+| sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+
+echo "Add MongoDB 7 repo..."
+echo "deb [ arch=amd64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" \
+| sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list > /dev/null
+
+echo "Install MongoDB..."
+sudo apt update -y
+sudo apt install -y mongodb-org
+
+echo "Allow remote connections (bindIp 0.0.0.0)..."
+sudo sed -i 's/^  bindIp:.*$/  bindIp: 0.0.0.0/' /etc/mongod.conf
+
+echo "Start MongoDB..."
+sudo systemctl enable mongod
+sudo systemctl restart mongod
+
+echo "MongoDB is ready."
+
+
