@@ -1,0 +1,185 @@
+# Creating a Custom VPC for the Sparta 2 Tier App Deployment
+
+This section documents how to create a custom VPC in AWS and deploy the Sparta Node.js app VM and MongoDB database VM inside it using public and private subnets.
+
+The goal of this setup is to:
+
+•	Place the App VM in a public subnet
+
+•	Place the DB VM in a private subnet
+
+•	Control traffic flow using route tables, security groups, and gateways
+
+•	Improve security and architecture compared to the default VPC
+
+⸻
+
+   ## Step 1: Create the VPC
+   
+1. Navigate to VPC → Your VPCs
+2. Click Create VPC
+3. Provide a name for the VPC
+4. Enter the IPv4 CIDR block:
+```
+10.0.0.0/16
+```
+5. Leave other settings as default
+6. Click Create VPC
+
+This CIDR block gives a large private IP range that can be split into multiple subnets.
+
+## Step 2: Create Subnets
+
+Public Subnet (App VM)
+
+1. Go to VPC → Subnets
+2. Click Create subnet
+3. Select your newly created VPC
+4. Name the subnet (for example: public-subnet-a)
+5. Choose Availability Zone A
+6. Enter the subnet CIDR block:
+```
+10.0.2.0/16
+```
+7. Create the subnet
+
+Private Subnet (DB VM)
+
+1. Click Create subnet again
+2. Select the same VPC
+3. Name the subnet (for example: private-subnet-b)
+4. Choose Availability Zone B
+5. Enter the subnet CIDR block:
+```
+10.0.3.0/16
+```
+6. Create the subnet
+
+At this point, you have:
+
+•One public subnet for the app
+
+•One private subnet for the database
+
+### Step 3: Create and Attach an Internet Gateway
+
+1.	Navigate to VPC → Internet Gateways
+2.	Click Create internet gateway
+3.	Provide a name
+4.	Create the gateway
+5.	Select the internet gateway
+6.	Click Attach to VPC
+7.	Choose your custom VPC
+
+The internet gateway allows public internet traffic to reach the public subnet.
+
+⸻
+
+### Step 4: Configure Route Tables
+
+Public Route Table
+
+1.	Go to VPC → Route Tables
+2.	Click Create route table
+3.	Give it a name
+4.	Select your custom VPC
+5.	Create the route table
+
+Associate the Public Subnet
+
+1.	Select the new route table
+2.	Go to Subnet associations
+3.	Click Edit subnet associations
+4.	Select the public subnet
+5.	Save associations
+
+Add Internet Route
+
+1.	Go to Routes
+2.	Click Edit routes
+3.	Add a new route:
+    • Destination:
+
+        0.0.0.0/0
+        Target: Internet Gateway
+4.	Select your internet gateway
+5.	Save routes
+
+This allows inbound and outbound internet traffic for the public subnet.
+
+### Step 5: Verify VPC Setup
+
+1.	Return to VPC → Your VPCs
+2.	Select your custom VPC
+3.	Open the Resource map
+
+You should now see:
+
+•	Your VPC
+•	One public subnet
+•	One private subnet
+•	An attached internet gateway
+•	Route table associations
+
+⸻
+
+### Step 6: Create the Database VM (Private Subnet)
+1.	Launch a new EC2 instance
+2.	In Network settings:
+
+	•	Select your custom VPC
+	•	Select the private subnet
+
+3.	Security group configuration:
+
+	•	Remove SSH access
+	•	Allow MongoDB (port 27017) only from the App VM security group
+    
+4.	Launch the instance
+5.	Note the private IP address of the DB VM
+
+This VM is not publicly accessible and cannot be SSHed into directly.
+
+⸻
+
+### Step 7: Create the App VM (Public Subnet)
+1.	Launch a new EC2 instance using your App AMI
+2.	In Network settings:
+
+	•	Select your custom VPC
+	•	Select the public subnet
+
+3.	Configure security group:
+
+	•	SSH (22) from My IP
+	•	HTTP (80) from Anywhere
+
+4.	Paste your User Data script
+
+	•	Include the DB VM private IP
+	•	Start the app automatically
+
+5.	Launch the instance
+
+⸻
+
+### Step 8: Test the Deployment
+
+Once the App VM is running:
+1.	Copy the public IP address
+2.	Open a browser and test:
+3.	Test the posts page:
+
+Both pages should load without using port 3000.
+
+### Step 9: Clean Up Resources
+
+When finished:
+	1.	Terminate the App and DB EC2 instances
+	2.	Delete associated security groups
+	3.	Delete the custom VPC
+
+Deleting the VPC will automatically remove:
+	•	Subnets
+	•	Route tables
+	•	Internet gateway associations
