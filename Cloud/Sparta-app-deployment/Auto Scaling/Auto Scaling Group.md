@@ -25,6 +25,7 @@ If CPU too high, change instance size
 t3.micro  ->  t3.small  ->  t3.medium
 
 Pros: simple
+
 Cons: downtime risk when resizing, there is a limit to how big you can go
 ```
 

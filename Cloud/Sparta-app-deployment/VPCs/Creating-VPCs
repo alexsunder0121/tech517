@@ -28,6 +28,8 @@ The goal of this setup is to:
 
 This CIDR block gives a large private IP range that can be split into multiple subnets.
 
+
+
 ## Step 2: Create Subnets
 
 Public Subnet (App VM)

@@ -1,37 +1,42 @@
 # Monitoring, Alarm Management and AutoScaling
 
 ## Step 1: Create a CloudWatch Dashboard
-	1.	Logged into the AWS Management Console
-	2.	Navigated to CloudWatch
-	3.	Selected Dashboards
-	4.	Clicked Create dashboard
-	5.	Gave the dashboard a clear name (for example: sparta-app-dashboard)
-	6.	Selected widgets such as:
-	•	EC2 CPU Utilisation
-	•	Network In / Network Out
-	•	Disk Read / Write
-	7.	Selected the App VM EC2 instance as the data source
+1.	Logged into the AWS Management Console
+2.	Navigated to CloudWatch
+3.	Selected Dashboards
+4.	Clicked Create dashboard
+5.	Gave the dashboard a clear name (for example: sparta-app-dashboard)
+6.	Selected widgets such as:
+
+	• EC2 CPU Utilisation
+
+	• Network In / Network Out
+
+	• Disk Read / Write
+
+7.	Selected the App VM EC2 instance as the data source
 
 This dashboard allows real time visibility into how the VM behaves during load testing.
 
 ⸻
 
 ## Step 2: Enable Detailed Monitoring on the EC2 Instance
-	1.	Opened the EC2 console
-	2.	Selected the App VM
-	3.	Enabled Detailed Monitoring
+1.	Opened the EC2 console
+2.	Selected the App VM
+3.	Enabled Detailed Monitoring
 
 Why this matters:
-	•	Standard monitoring updates every 5 minutes
-	•	Detailed monitoring updates every 1 minute
-	•	This makes spikes during testing visible on the dashboard
+	
+	• Standard monitoring updates every 5 minutes
+	• Detailed monitoring updates every 1 minute
+	• This makes spikes during testing visible on the dashboard
 
 ⸻
 
 ## Step 3: Prepare the App VM for Load Testing
-	1.	SSH into the App VM
-	2.	Changed into the correct user directory:
-    3. Install apache 
+1.	SSH into the App VM
+2.	Changed into the correct user directory:
+3. Install apache 
         ```
         sudo apt-get install apache2-utils
         ```
@@ -56,9 +61,10 @@ This simulates 10 users accessing the app at the same time.
 ## Step 5: Observe CloudWatch Metrics During Testing
 
 While the test was running:
-	•	CPU utilisation increased
-	•	Network traffic increased
-	•	Response times could be observed in Apache Bench output
+
+	• CPU utilisation increased
+	• Network traffic increased
+	• Response times could be observed in Apache Bench output
 
 This confirmed that the app and VM were responding correctly to load.
 
