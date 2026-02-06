@@ -1,0 +1,47 @@
+---
+- name: install app dependencies and run app
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - curl
+          - git
+        state: present
+
+    - name: Add NodeSource Node.js 18 repo
+      ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+
+    - name: Copy app folder to target node
+      ansible.builtin.copy:
+        src: /home/ubuntu/tech517-sparta-app/app/
+        dest: /home/ubuntu/app/
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Install npm dependencies
+      ansible.builtin.command: npm install
+      args:
+        chdir: /home/ubuntu/app
+
+    - name: Check if app is already running on port 3000
+      ansible.builtin.shell: ss -lntp | grep ':3000' || true
+      register: port_check
+      changed_when: false
+
+    - name: Run app in foreground (npm start)
+      ansible.builtin.command: npm start
+      args:
+        chdir: /home/ubuntu/app
+      when: port_check.stdout == ""

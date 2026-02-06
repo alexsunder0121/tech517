@@ -1,0 +1,48 @@
+---
+- name: Install MongoDB on Ubuntu 22.04
+  hosts: db
+  become: true
+  gather_facts: true             # change true to yes
+
+  tasks:
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Upgrade all packages
+      ansible.builtin.apt:
+        upgrade: dist
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - gnupg
+          - curl
+        state: present
+
+    - name: Add MongoDB GPG key
+      ansible.builtin.apt_key:
+        url: https://pgp.mongodb.com/server-7.0.asc
+        state: present
+
+    - name: Add MongoDB repository
+      ansible.builtin.apt_repository:
+        repo: "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse"
+        state: present
+        filename: mongodb-org-7.0
+
+    - name: Update apt cache after adding MongoDB repo
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install MongoDB
+      ansible.builtin.apt:
+        name: mongodb-org
+        state: present
+
+    - name: Ensure MongoDB is running and enabled
+      ansible.builtin.service:
+        name: mongod
+        state: started
+        enabled: yes

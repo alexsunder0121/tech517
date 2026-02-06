@@ -27,14 +27,18 @@ make_bucket: tech517-alex-first-bucket
 * Upload a file to S3: 
   * Example: ```aws s3 cp <filename> s3://<bucket-name>```
   * Tester: ```aws s3 cp test.txt s3://tech517-alex-first-bucket```
+  
 * List files in a bucket: `aws s3 ls s3://tech517-alex-first-bucket`
+
 * Download files from bucket: `aws s3 sync s3://tech517-alex-first-bucket .`
+  
 * Remove a single file from bucket: `aws s3 rm s3://<name of bucket>/<name of file to remove>`
   * Example: `aws s3 rm s3://tech517-alex-first-bucket/test.txt`
+  
 * Remove all files from the bucket: `aws s3 rm s3://tech517-alex-first-bucket`
   * MUST USE RECUSIVE OPTION⛔️: `aws s3 rm s3://tech517-alex-first-bucket --recursive` - DANGER!‼️ Will delete ALL files in the bucket without prompting 
-* Remove bucket with files in it: `aws s3 rb s3://tech517-alex-first-bucket --force`DANGER!‼️ Will delete the bucket and ALL files in the bucket without prompting 
-* 
+  
+* Remove bucket with files in it: `aws s3 rb s3://tech517-alex-first-bucket --force`DANGER!‼️ Will delete the bucket and ALL files in the bucket without prompting  
 
 
 
@@ -55,17 +59,15 @@ sudo apt upgrade -y
 ```
 
 2. Install Python pip (required to install AWS CLI):
-
 ```sudo apt-get install python3-pip -y```
 
 3.	Install AWS CLI using pip:
-
 ```sudo pip3 install awscli```
 
 4.	Verify the installation:
 ```aws --version```
 
-# #Authenticating Using AWS CLI
+## Authenticating Using AWS CLI
 
 To allow the EC2 instance to interact with AWS services, the AWS CLI must be authenticated using access credentials.
 
@@ -75,8 +77,11 @@ To allow the EC2 instance to interact with AWS services, the AWS CLI must be aut
 2.	Enter the following when prompted:
 
 	•	AWS Access Key ID: paste your access key
+
 	•	AWS Secret Access Key: paste your secret key
+
 	•	Default region name: eu-west-1
+  
 	•	Default output format: json
 
 3.	Test authentication by listing S3 buckets:

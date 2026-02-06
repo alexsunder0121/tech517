@@ -1,0 +1,28 @@
+# starts with --- (three hyphens)
+---
+
+# name the play 
+
+- name: install nginx 
+  # where we want to install or run this play 
+  hosts: web 
+
+  # do we want comprehensive facts from the host. Changed true to yes!
+  gather_facts: true
+
+  # whether we need sudo access
+  become: true 
+
+  # instructions/actions are known as "tasks"
+  tasks: 
+  - name: update apt cache 
+    ansible.builtin.apt: 
+      update_cache: yes
+
+  - name: upgrade all packages 
+    ansible.builtin.apt:
+      upgrade: dist
+
+  - name: install nginx 
+    ansible.builtin.apt: pkg=nginx state=present
+

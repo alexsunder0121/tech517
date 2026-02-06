@@ -1,0 +1,81 @@
+---
+- name: install app dependencies and run app
+  hosts: web
+  become: true
+  gather_facts: true
+
+  vars:
+    app_src_path: "/home/ubuntu/tech517-sparta-app/app"
+    app_dest_path: "/home/ubuntu/app"
+    node_major: "18"
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - curl
+          - git
+        state: present
+        update_cache: true
+
+    - name: Add NodeSource Node.js repo
+      ansible.builtin.shell: "curl -fsSL https://deb.nodesource.com/setup_{{ node_major }}.x | bash -"
+      args:
+        creates: "/etc/apt/sources.list.d/nodesource.list"
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+        update_cache: true
+
+    - name: Configure nginx reverse proxy to port 3000
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/default
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+
+              server_name _;
+
+              location / {
+                  proxy_pass http://127.0.0.1:3000;
+                  proxy_http_version 1.1;
+
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+
+                  proxy_cache_bypass $http_upgrade;
+              }
+          }
+      notify: Restart nginx
+
+    - name: Copy app folder to target node
+      ansible.builtin.copy:
+        src: "{{ app_src_path }}/"
+        dest: "{{ app_dest_path }}/"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Install app dependencies (npm install)
+      ansible.builtin.command: npm install
+      args:
+        chdir: "{{ app_dest_path }}"
+
+    - name: Run app in foreground (npm start)
+      ansible.builtin.command: npm start
+      args:
+        chdir: "{{ app_dest_path }}"
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

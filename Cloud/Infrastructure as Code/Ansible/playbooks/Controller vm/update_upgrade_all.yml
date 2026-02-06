@@ -1,0 +1,13 @@
+---
+- name: Update and upgrade packages on web and db servers
+  hosts: web,db
+  become: true 
+
+  tasks: 
+  - name: update apt cache 
+    ansible.builtin.apt: 
+      update_cache: yes
+
+  - name: upgrade all packages 
+    ansible.builtin.apt:
+      upgrade: dist 

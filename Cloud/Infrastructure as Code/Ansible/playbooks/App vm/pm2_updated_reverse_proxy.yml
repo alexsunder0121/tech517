@@ -1,0 +1,91 @@
+---
+- name: install app dependencies and run app with pm2
+  hosts: web
+  become: true
+
+  vars:
+    controller_app_path: /home/ubuntu/tech517-sparta-app/app
+    target_app_path: /home/ubuntu/app
+    app_run_path: /home/ubuntu/app
+    app_name: sparta-app
+    db_host: "mongodb://127.0.0.1:27017/posts"
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - git
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Add NodeSource Node.js 18 repo
+      ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+
+    - name: Install pm2 globally
+      ansible.builtin.npm:
+        name: pm2
+        global: yes
+
+    - name: Copy app folder from controller to target
+      ansible.builtin.copy:
+        src: "{{ controller_app_path }}/"
+        dest: "{{ target_app_path }}/"
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Install app dependencies
+      ansible.builtin.npm:
+        path: "{{ app_run_path }}"
+      become_user: ubuntu
+
+    - name: Configure nginx reverse proxy
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          server {
+              listen 80 default_server;
+              listen [::]:80 default_server;
+
+              server_name _;
+
+              location / {
+                  proxy_pass http://127.0.0.1:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
+              }
+          }
+
+    - name: Test nginx config
+      ansible.builtin.command: nginx -t
+
+    - name: Restart nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: restarted
+        enabled: true
+
+    - name: Stop app if already running (safe to re-run)
+      ansible.builtin.shell: pm2 delete {{ app_name }} || true
+      become_user: ubuntu
+
+    - name: Start app with pm2 (background)
+      ansible.builtin.shell: |
+        export DB_HOST="{{ db_host }}"
+        pm2 start npm --name {{ app_name }} -- start
+        pm2 save
+      args:
+        chdir: "{{ app_run_path }}"
+      become_user: ubuntu
