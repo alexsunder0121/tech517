@@ -1,40 +1,55 @@
 ---
+# Playbook to deploy the Node.js app, configure Nginx as a reverse proxy,
+# and manage the app process using PM2
 - name: install app dependencies and run app with pm2
+
+  # Target the web server(s) defined in the inventory
   hosts: web
+
+  # Run tasks with elevated privileges when required
   become: true
 
+  # Variables used throughout the playbook to avoid hardcoding paths and values
   vars:
-    controller_app_path: /home/ubuntu/tech517-sparta-app/app
-    target_app_path: /home/ubuntu/app
-    app_run_path: /home/ubuntu/app
-    app_name: sparta-app
-    db_host: "mongodb://127.0.0.1:27017/posts"
+    controller_app_path: /home/ubuntu/tech517-sparta-app/app  # App location on controller
+    target_app_path: /home/ubuntu/app                         # App location on target VM
+    app_run_path: /home/ubuntu/app                             # Directory where app runs
+    app_name: sparta-app                                       # PM2 process name
+    db_host: "mongodb://127.0.0.1:27017/posts"                 # Database connection string
 
   tasks:
+
+    # Install base packages required for the app and reverse proxy
     - name: Install required packages
       ansible.builtin.apt:
         name:
-          - nginx
-          - git
-          - curl
+          - nginx   # Used as a reverse proxy
+          - git     # Used if pulling code from a repository
+          - curl    # Required to fetch external scripts
         state: present
         update_cache: yes
 
+    # Add NodeSource repository to install Node.js 18
+    # This is done via shell because no native Ansible module exists
     - name: Add NodeSource Node.js 18 repo
       ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
       args:
+        # Prevents re-running the script if the repo already exists
         creates: /etc/apt/sources.list.d/nodesource.list
 
+    # Install Node.js from the NodeSource repository
     - name: Install Node.js
       ansible.builtin.apt:
         name: nodejs
         state: present
 
+    # Install PM2 globally so it can manage the Node app process
     - name: Install pm2 globally
       ansible.builtin.npm:
         name: pm2
         global: yes
 
+    # Copy the application code from the controller VM to the target VM
     - name: Copy app folder from controller to target
       ansible.builtin.copy:
         src: "{{ controller_app_path }}/"
@@ -43,11 +58,14 @@
         group: ubuntu
         mode: "0755"
 
+    # Install Node.js dependencies defined in package.json
+    # Run as the ubuntu user to avoid permission issues
     - name: Install app dependencies
       ansible.builtin.npm:
         path: "{{ app_run_path }}"
       become_user: ubuntu
 
+    # Configure Nginx to forward incoming traffic to the Node app on port 3000
     - name: Configure nginx reverse proxy
       ansible.builtin.copy:
         dest: /etc/nginx/sites-available/default
@@ -59,7 +77,10 @@
               server_name _;
 
               location / {
+                  # Forward HTTP requests to the Node.js app
                   proxy_pass http://127.0.0.1:3000;
+
+                  # Required headers for Node.js and WebSocket support
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection 'upgrade';
@@ -68,23 +89,33 @@
               }
           }
 
+    # Validate the Nginx configuration before restarting
     - name: Test nginx config
       ansible.builtin.command: nginx -t
 
+    # Restart Nginx to apply the new configuration
     - name: Restart nginx
       ansible.builtin.systemd:
         name: nginx
         state: restarted
         enabled: true
 
+    # Stop the app if it is already running
+    # This makes the playbook safe to re-run
     - name: Stop app if already running (safe to re-run)
       ansible.builtin.shell: pm2 delete {{ app_name }} || true
       become_user: ubuntu
 
+    # Start the app using PM2 and persist the process list
     - name: Start app with pm2 (background)
       ansible.builtin.shell: |
+        # Export database connection string for the app
         export DB_HOST="{{ db_host }}"
+
+        # Start the app using npm via PM2
         pm2 start npm --name {{ app_name }} -- start
+
+        # Save PM2 process list so it restarts on reboot
         pm2 save
       args:
         chdir: "{{ app_run_path }}"

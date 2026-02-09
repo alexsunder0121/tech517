@@ -1,41 +1,55 @@
 ---
+# Playbook to install dependencies, deploy the Node app,
+# configure Nginx as a reverse proxy, and start the app
 - name: install app dependencies and run app
+
+  # Target the "web" group defined in the inventory
   hosts: web
+
+  # Run tasks with sudo/root privileges where required
   become: true
 
   tasks:
+
+    # Install core packages needed for the app and reverse proxy
     - name: Install required packages
       ansible.builtin.apt:
         name:
-          - nginx
-          - curl
-          - git
+          - nginx   # Web server used as a reverse proxy
+          - curl    # Used to fetch external scripts (NodeSource)
+          - git     # Needed if app code is pulled from a repo
         state: present
-        update_cache: yes
+        update_cache: yes  # Refresh apt cache before installing
 
+    # Add the NodeSource repository so we can install Node.js 18
     - name: Add NodeSource Node.js 18 repo
       ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
       args:
+        # Prevents the script from running again if repo already exists
         creates: /etc/apt/sources.list.d/nodesource.list
 
+    # Install Node.js from the newly added NodeSource repository
     - name: Install Node.js
       ansible.builtin.apt:
         name: nodejs
         state: present
 
+    # Copy the application code from the controller to the target node
     - name: Copy app folder to target node
       ansible.builtin.copy:
-        src: /home/ubuntu/tech517-sparta-app/app/
-        dest: /home/ubuntu/app/
+        src: /home/ubuntu/tech517-sparta-app/app/  # Path on controller
+        dest: /home/ubuntu/app/                    # Path on app VM
         owner: ubuntu
         group: ubuntu
         mode: "0755"
 
+    # Install Node.js dependencies listed in package.json
     - name: Install npm dependencies
       ansible.builtin.command: npm install
       args:
-        chdir: /home/ubuntu/app
+        chdir: /home/ubuntu/app  # Run command inside app directory
 
+    # Replace the default Nginx site config with a reverse proxy
     - name: Configure nginx reverse proxy
       ansible.builtin.copy:
         dest: /etc/nginx/sites-available/default
@@ -47,7 +61,10 @@
               server_name _;
 
               location / {
+                  # Forward incoming HTTP traffic to the Node app
                   proxy_pass http://127.0.0.1:3000;
+
+                  # Required headers for Node and WebSocket support
                   proxy_http_version 1.1;
                   proxy_set_header Upgrade $http_upgrade;
                   proxy_set_header Connection 'upgrade';
@@ -56,20 +73,25 @@
               }
           }
 
+    # Validate the Nginx configuration before restarting
     - name: Test nginx config
       ansible.builtin.command: nginx -t
 
+    # Restart Nginx to apply the new reverse proxy configuration
     - name: Restart nginx
       ansible.builtin.systemd:
         name: nginx
         state: restarted
-        enabled: true
+        enabled: true  # Ensure Nginx starts on boot
 
+    # Check if something is already listening on port 3000
+    # Prevents starting the app multiple times
     - name: Check if app is already running on port 3000
       ansible.builtin.shell: ss -lntp | grep ':3000' || true
       register: port_check
-      changed_when: false
+      changed_when: false  # This task should not mark the play as changed
 
+    # Start the Node app only if it is not already running
     - name: Run app in foreground (npm start)
       ansible.builtin.command: npm start
       args:
