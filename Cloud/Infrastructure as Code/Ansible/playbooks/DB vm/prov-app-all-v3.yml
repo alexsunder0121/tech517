@@ -1,0 +1,138 @@
+---
+# PLAY 1: DB node (MongoDB)
+- name: Provision MongoDB
+  hosts: db
+  become: true
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Add MongoDB GPG key
+      ansible.builtin.shell: |
+        curl -fsSL https://pgp.mongodb.com/server-7.0.asc |
+        gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+      args:
+        creates: /usr/share/keyrings/mongodb-server-7.0.gpg
+
+    - name: Add MongoDB repo
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/mongodb-org-7.0.list
+        content: |
+          deb [ arch=amd64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse
+
+    - name: Install MongoDB
+      ansible.builtin.apt:
+        name: mongodb-org
+        state: present
+        update_cache: yes
+
+    - name: Set MongoDB to listen on all interfaces
+      ansible.builtin.lineinfile:
+        path: /etc/mongod.conf
+        insertafter: '^net:'
+        regexp: '^\s*bindIp:'
+        line: '  bindIp: 0.0.0.0'
+
+    - name: Restart and enable MongoDB
+      ansible.builtin.systemd:
+        name: mongod
+        state: restarted
+        enabled: true
+
+
+# PLAY 2: App node (Node app + Nginx + PM2)
+- name: Provision app and connect to DB
+  hosts: web
+  become: true
+
+  vars:
+    app_path: /home/ubuntu/app
+    app_name: sparta-app
+    db_host: "mongodb://172.31.46.210:27017/posts"
+
+  tasks:
+    - name: Install packages
+      ansible.builtin.apt:
+        name:
+          - nginx
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Add NodeSource repo (Node 18)
+      ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js
+      ansible.builtin.apt:
+        name: nodejs
+        state: present
+
+    - name: Install PM2 globally
+      ansible.builtin.npm:
+        name: pm2
+        global: yes
+
+    - name: Copy app code to app node
+      ansible.builtin.copy:
+        src: /home/ubuntu/tech517-sparta-app/app/
+        dest: "{{ app_path }}/"
+
+    - name: Install app dependencies
+      ansible.builtin.npm:
+        path: "{{ app_path }}"
+      become_user: ubuntu
+
+    - name: Seed marker check
+      ansible.builtin.stat:
+        path: /home/ubuntu/.db_seeded
+      register: seed_marker
+
+    - name: Seed database (only once)
+      ansible.builtin.shell: |
+        export DB_HOST="{{ db_host }}"
+        node seeds/seed.js
+        touch /home/ubuntu/.db_seeded
+      args:
+        chdir: "{{ app_path }}"
+      become_user: ubuntu
+      when: not seed_marker.stat.exists
+
+    - name: Configure Nginx reverse proxy to app
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/default
+        content: |
+          server {
+            listen 80;
+            server_name _;
+            location / {
+              proxy_pass http://127.0.0.1:3000;
+              proxy_set_header Host $host;
+            }
+          }
+
+    - name: Restart Nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: restarted
+        enabled: true
+
+    - name: Stop app if running
+      ansible.builtin.shell: pm2 delete {{ app_name }} || true
+      become_user: ubuntu
+
+    - name: Start app with PM2
+      ansible.builtin.shell: |
+        export DB_HOST="{{ db_host }}"
+        pm2 start npm --name {{ app_name }} -- start
+        pm2 save
+      args:
+        chdir: "{{ app_path }}"
+      become_user: ubuntu

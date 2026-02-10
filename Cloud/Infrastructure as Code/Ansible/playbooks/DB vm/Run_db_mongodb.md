@@ -36,17 +36,6 @@ User → Nginx (port 80) → Node.js app (port 3000) → MongoDB (port 27017)
 
 ## Stage 1: Provision and Run the App in the Foreground
 
-Goal
-
-Deploy the application on the app VM and run it in the foreground using npm start.
-
-This stage focuses on understanding:
-	•	Dependency installation
-	•	File transfer
-	•	Application startup
-	•	Reverse proxy basics
-
-⸻
 
 ### What the Stage 1 Playbook Does
 

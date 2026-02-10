@@ -12,6 +12,15 @@
 
   tasks:
 
+    # Install system packages required to add external repositories securely
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - gnupg        # Used to verify MongoDB GPG keys
+          - curl         # Used to download MongoDB GPG key
+        state: present
+        update_cache: yes
+
     # Download MongoDB's official GPG signing key and convert it
     # This allows apt to trust MongoDB packages
     - name: Add MongoDB GPG key
@@ -22,7 +31,7 @@
         # Prevents re-downloading the key on re-runs
         creates: /usr/share/keyrings/mongodb-server-7.0.gpg
 
-    # Add MongoDB's official repository for Ubuntu
+    # Add MongoDB's official repository for Ubuntu 22.04 (Jammy)
     - name: Add MongoDB repository
       ansible.builtin.copy:
         dest: /etc/apt/sources.list.d/mongodb-org-7.0.list
@@ -45,17 +54,22 @@
         regexp: '^\s*bindIp:'
         line: '  bindIp: 0.0.0.0'
 
-      notify: restart mongod 
-
-      # Handlers - this runs at the end once the task runs
-  handlers: 
-    - name: restart mongod
-      ansible.builtin.service:
+    # Restart MongoDB to apply config changes
+    # Enable ensures MongoDB starts automatically on boot
+    - name: Restart and enable MongoDB
+      ansible.builtin.systemd:
         name: mongod
         state: restarted
+        enabled: true
 
-  
-# PLAY 2: Configure APP
+    # Validation step: check MongoDB is actually listening on port 27017
+    - name: Check MongoDB is listening on port 27017
+      ansible.builtin.shell: ss -lntp | grep 27017 || true
+      register: mongo_listen_check
+      changed_when: false
+
+
+# PLAY 2: Configure Application #
 
 # This play provisions and starts the Node.js application
 - name: Configure Node app and connect to DB
@@ -66,7 +80,7 @@
   # Run system-level tasks as root
   become: true
 
-  # Variables used 
+  # Variables used throughout the play
   vars:
     app_path: /home/ubuntu/app        # Location of app on target VM
     app_name: sparta-app              # PM2 process name
@@ -75,7 +89,17 @@
     db_host: "mongodb://172.31.46.210:27017/posts"
 
   tasks:
-  
+
+    # Install required system packages for the app and reverse proxy
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - nginx     # Reverse proxy (port 80 → 3000)
+          - git       # Used for code management
+          - curl      # Required for NodeSource installer
+        state: present
+        update_cache: yes
+
     # Add NodeSource repository so we can install Node.js 18
     - name: Add NodeSource Node.js repo
       ansible.builtin.shell: curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
@@ -100,7 +124,9 @@
       ansible.builtin.copy:
         src: /home/ubuntu/tech517-sparta-app/app/
         dest: "{{ app_path }}/"
-
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
 
     # Install Node.js dependencies defined in package.json
     # Run as ubuntu user to avoid permission issues
@@ -108,6 +134,20 @@
       ansible.builtin.npm:
         path: "{{ app_path }}"
       become_user: ubuntu
+
+    # Wait until MongoDB is reachable before continuing
+    # Prevents race condition where app starts before DB is ready
+    - name: Wait for MongoDB to be reachable from app node
+      ansible.builtin.wait_for:
+        host: "172.31.46.210"
+        port: 27017
+        timeout: 60
+
+    # Check for a marker file to avoid reseeding the database
+    - name: Check if database has already been seeded
+      ansible.builtin.stat:
+        path: /home/ubuntu/.db_seeded
+      register: seed_marker
 
     # Seed the database only on first run
     - name: Seed database (first run only)
@@ -126,14 +166,18 @@
         dest: /etc/nginx/sites-available/default
         content: |
           server {
-              listen 80 
+              listen 80 default_server;
+              listen [::]:80 default_server;
 
               server_name _;
 
               location / {
-                proxy_pass http://127.0.0.1:3000;
-                proxy_set_header Host $host;
-                 
+                  proxy_pass http://127.0.0.1:3000;
+                  proxy_http_version 1.1;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection 'upgrade';
+                  proxy_set_header Host $host;
+                  proxy_cache_bypass $http_upgrade;
               }
           }
 
