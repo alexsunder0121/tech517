@@ -7,27 +7,27 @@
   - [Architecture Overview](#architecture-overview)
 - [Webhook \& Pipeline Trigger](#webhook--pipeline-trigger)
   - [What is a Webhook?](#what-is-a-webhook)
-  - [Job 1 – CI Test (dev branch)](#job-1--ci-test-dev-branch)
-    - [Purpose](#purpose)
-    - [Configuration](#configuration)
-    - [Build Triggers](#build-triggers)
-    - [Outcome of Job 1](#outcome-of-job-1)
-  - [Job 2 – CI Merge (dev → main)](#job-2--ci-merge-dev--main)
-    - [Purpose](#purpose-1)
-    - [Trigger Configurations](#trigger-configurations)
-    - [Execute Shell commands used](#execute-shell-commands-used)
-    - [Security Setup](#security-setup)
-    - [Outcome of Job 2](#outcome-of-job-2)
-  - [Job 3 – CD Deploy (main → EC2)](#job-3--cd-deploy-main--ec2)
-    - [Purpose](#purpose-2)
-    - [Trigger Configuration](#trigger-configuration)
-    - [Security Setup](#security-setup-1)
-    - [Executed Shell Commands](#executed-shell-commands)
-    - [Outcome](#outcome)
-  - [Summary](#summary)
-  - [Benefits of This Pipeline used](#benefits-of-this-pipeline-used)
-    - [Technical Benefits](#technical-benefits)
-    - [Organisational Benefits](#organisational-benefits)
+- [Job 1 – CI Test (dev branch)](#job-1--ci-test-dev-branch)
+  - [Purpose](#purpose)
+  - [Configuration](#configuration)
+  - [Build Triggers](#build-triggers)
+  - [Outcome of Job 1](#outcome-of-job-1)
+- [Job 2 – CI Merge (dev → main)](#job-2--ci-merge-dev--main)
+  - [Purpose](#purpose-1)
+  - [Trigger Configurations](#trigger-configurations)
+  - [Execute Shell commands used](#execute-shell-commands-used)
+  - [Security Setup](#security-setup)
+  - [Outcome of Job 2](#outcome-of-job-2)
+- [Job 3 – CD Deploy (main → EC2)](#job-3--cd-deploy-main--ec2)
+  - [Purpose](#purpose-2)
+  - [Trigger Configuration](#trigger-configuration)
+  - [Security Setup](#security-setup-1)
+  - [Executed Shell Commands](#executed-shell-commands)
+  - [Outcome of Job 3](#outcome-of-job-3)
+- [Summary](#summary)
+- [Benefits of This Pipeline used](#benefits-of-this-pipeline-used)
+  - [Technical Benefits](#technical-benefits)
+  - [Organisational Benefits](#organisational-benefits)
 - [My Learning Obsveration](#my-learning-obsveration)
   - [Verifying Job 2 – Merge Validation (README Change Test)](#verifying-job-2--merge-validation-readme-change-test)
     - [Why I Tested Using README.md](#why-i-tested-using-readmemd)
@@ -101,9 +101,9 @@ By using a webhook:
 	• No manual trigger is required.
 	• The pipeline responds in real time to changes.
 
-## Job 1 – CI Test (dev branch)
+# Job 1 – CI Test (dev branch)
 
-### Purpose
+## Purpose
 
 The purpose of Job 1 is to validate new code before it is merged into the production branch.
 
@@ -115,7 +115,7 @@ This job ensures that:
 
 If this job fails, the pipeline stops immediately.
 
-### Configuration
+## Configuration
 
 Source Code Management
 
@@ -132,7 +132,7 @@ This allows Jenkins to:
 	• Access private repositories
 	• Pull code without using passwords
 
-### Build Triggers
+## Build Triggers
 
 I enabled: GitHub hook trigger for GITScm polling
 
@@ -150,7 +150,7 @@ When I push code to the dev branch:
 3.	Jenkins checks the repository state.
 4.	Job 1 runs automatically.
 
-### Outcome of Job 1 
+## Outcome of Job 1 
 
 If tests pass:
 
@@ -165,9 +165,9 @@ However, if the tests fail:
 This protects the main branch from unstable code.
 
 
-## Job 2 – CI Merge (dev → main)
+# Job 2 – CI Merge (dev → main)
 
-### Purpose
+## Purpose
 
 The purpose of Job 2 from my understandng is to automatically merge tested code from the dev branch into the main branch.
 
@@ -175,7 +175,7 @@ The purpose of Job 2 from my understandng is to automatically merge tested code 
 	• The merge process is consistent and automated.
 
 
-### Trigger Configurations
+## Trigger Configurations
 
 I configured Job 2 to:
 
@@ -193,7 +193,7 @@ My Configuration:
 • SSH authentication: same Jenkins GitHub SSH key
 
 
-### Execute Shell commands used
+## Execute Shell commands used
 1. git checkout main
    1. Jenkins checks out the main branch.
 2. git merge origin/dev
@@ -201,13 +201,13 @@ My Configuration:
 3. git push origin main
    1. It pushes the updated main branch back to GitHub
 
-### Security Setup
+## Security Setup
 
 1. I added the corresponding public key to GitHub.
 2. GitHub grants write access via this key.
 
 
-### Outcome of Job 2
+## Outcome of Job 2
 
 If Job 1 passes:
 
@@ -216,9 +216,9 @@ If Job 1 passes:
 	• Then i can move onto getting Job 3 to be triggered
 
 
-## Job 3 – CD Deploy (main → EC2)
+# Job 3 – CD Deploy (main → EC2)
 
-### Purpose
+## Purpose
 
 The purpose of Job 3 is to deploy the tested and merged code onto the live EC2 instance.
 
@@ -228,13 +228,13 @@ Important rule I made sure to follow was:
 
 This guarantees that production runs exactly what was tested in CI.
 
-### Trigger Configuration
+## Trigger Configuration
 
 Job 3 is triggered after Job 2 succeeds.
 
 It only runs if the merge was successful.
 
-### Security Setup
+## Security Setup
 
 Two types of SSH authentication were configured:
 
@@ -263,7 +263,7 @@ Used for:
 This keeps credentials secure and prevents them from being exposed in scripts.
 
 
-### Executed Shell Commands
+## Executed Shell Commands
 I use a shell script to deploy the tested code from Jenkins to my EC2 instance and restart the application.
 
 This is the part of the pipeline where Continuous Deployment happens.
@@ -284,7 +284,7 @@ This is the part of the pipeline where Continuous Deployment happens.
 
 • The process is repeatable and safe to re-run.
 
-### Outcome
+## Outcome of Job 3
 
 After Job 3 completes successfully:
 
@@ -298,7 +298,7 @@ After Job 3 completes successfully:
 
 ![Description of image](../images/First%20test.png)
 
-## Summary
+# Summary
 
 1.	Developer pushes change to dev
 2.	GitHub webhook triggers Jenkins
@@ -307,9 +307,9 @@ After Job 3 completes successfully:
 5.	If successful → Job 3 deploys to EC2
 6.	App is updated automatically
 
-## Benefits of This Pipeline used
+# Benefits of This Pipeline used
 
-### Technical Benefits
+## Technical Benefits
 
 • Automated testing before deployment
 
@@ -321,7 +321,7 @@ After Job 3 completes successfully:
 
 • Consistent deployment process
 
-### Organisational Benefits
+## Organisational Benefits
 
 • Faster release cycles
 
