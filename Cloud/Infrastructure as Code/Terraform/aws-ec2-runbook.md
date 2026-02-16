@@ -160,7 +160,7 @@ Why this helps:
 
 ---
 
-## Step 7: Commands you ran and what they mean
+## Step 7: Commands I ran and what they mean
 ### terraform init
 What it does:
 • Downloads the AWS provider plugin  
