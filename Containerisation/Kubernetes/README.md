@@ -92,12 +92,71 @@
     * Configure/updates network rules on the node so that network routing is always in sync with the current state of the cluster
  
 ## Kubernetes objects
-* The most common ones e.g. Deployments, ReplicaSets, Pods
-* What does it mean a pod is "ephemeral"
- 
+* Container
+  * Not an object in Kubernetes
+  * It is used within a pod (which is a kubernetes object)
+  
+* Pod
+  * A group of one or more containers
+  * Smallest deployable object in Kubernetes
+  * Going to share storage and network resources
+  * Executed on a worker node
+  * Specifies how to run the containers
+  * Has an internal IP address
+  * Are Ephemral - you can lose data when a pod is terminated or destroyed
+
+* Service
+  * A way to:
+    * Expose your application and
+    * Connect your pods 
+  * Labels and selectors are used to match a service to app's pods 
+
+* Volume
+  * A way to persist the storage of data of your pods 
+
+* ConfigMap
+  * Key-value database to store the configuration
+
+* Secret
+  * A way to store sensitive information such as usernames, passwords, SSH keys
+  * They are only base64 encoded, not encrypted 
+
+* Namespace 
+  * A way to logically group resources for an application 
+  * If not specified, your resources will go into the `default` namespace
+
+* ReplicaSet
+    * Replicates or makes a certain number of identical pods 
+    * Usually you don't create one directly (or creating one on it's own), you create a Deployment which creates the ReplicaSet 
+
+* Deployment 
+  * Used to deploy a ReplicaSet 
+  * In this way, the Deployment doesn't directly deal with the pods 
+
 ## How to mitigate security concerns with containers
- 
+
+* Use a Maintained Container images 
+* Use automatic vulnerability scanning on container registries 
+* Use own security scanning tool on your container images 
+* NEVER run containers with root priviliges 
+* Monitor & Log container activity 
+
 ## Maintained images
  
 * What are they
+  * A docker image that is regularly updated and managed by a maintainer 
+  * Usually the maintainer is an organisation, a community, or an individual 
+    * E.g. Canonical maintain Ubunutu images 
+  * Designed to give us a reliable, secure and up-to-date foundation for building and running our applications
+  
 * Pros and cons of using maintained images for your base container images
+  * Pros 
+    * Better security, as they are regularly patched 
+    * Better stability 
+    * More support and documentation 
+    * Usually they would adhere to best practices 
+    * May be streamlined to performance or small image size 
+
+  * Cons
+    * Dependent on the schedule of the maintaines for updates & patches 
+    * 

@@ -74,9 +74,9 @@ By default, Docker does not allow removal of running containers to prevent accid
 
 2. Difference between stop and remove
    
-	•	docker stop → Stops a running container
-	•	docker rm → Removes a stopped container
-	•	docker rm -f → Stops and removes a running container in one command
+	•	`docker stop` → Stops a running container
+	•	`docker rm` → Removes a stopped container
+	•	`docker rm -f` → Stops and removes a running container in one command
 
 3. The force flag (-f)
 
@@ -90,8 +90,8 @@ However, in production environments, forcing removal without understanding impac
 
 4. Checking container status
    
-	•	docker ps → Shows running containers
-	•	docker ps -a → Shows all containers (running and stopped)
+	•	`docker ps` → Shows running containers
+	•	`docker ps -a` → Shows all containers (running and stopped)
 
 After removal, the container disappears from both lists.
 
@@ -217,16 +217,16 @@ This reinforced understanding of:
 
 Commit the running container to a new image
 
-`docker commit my-nginx yourdockerhubusername/host-custom-static-webpage:latest`
+`docker commit my-nginx sunder09/host-custom-static-webpage:latest`
 
 	•	docker commit → Creates a new image from a running container
 	•	my-nginx → The container name
 	•	yourdockerhubusername/host-custom-static-webpage → Repository name
 	•	:latest → Tag
 
-2. Docker Hub Naming Convention
+1. Docker Hub Naming Convention
 
-Images must be tagged with: `username/repository:tag` otherwise the push will fail
+Images must be tagged with: `username/repository:v1` otherwise the push will fail
 
 3. Docker Login Required
 
@@ -239,11 +239,11 @@ You must authenticate before pushing images.
 
 5. Pulling Automatically
 
-When running: `docker run yourdockerhubusername/imagename`
+When running: `docker run sunder09/imagename`
 If the image does not exist locally:
 	•	Docker automatically pulls it from Docker Hub
 
-6. Port Mapping Flexibility
+1. Port Mapping Flexibility
 
 We used port 8080 this time to avoid conflict with existing containers.
 

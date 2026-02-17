@@ -1,0 +1,30 @@
+services:                           # defining the containers (services) that will run together
+
+  mongo:                            # This is my MongoDB database container
+    image: mongo:7.0                # using the official MongoDB image version 7.0 from Docker Hub
+    container_name: mongo           # naming the running container "mongo"
+    ports:
+      - "27017:27017"               # mapping port 27017 on my machine to port 27017 inside the container
+    volumes:
+      - mongo_data:/data/db         # storing MongoDB data in a named Docker volume so data is persistent
+
+  app:                              # This is my NodeJS Sparta test app container
+    image: sunder09/sparta-test-app:latest   # I am pulling my custom NodeJS app image from Docker Hub
+    container_name: app             # naming this container "app"
+    ports:
+      - "3000:3000"                 # I am mapping port 3000 on my machine to port 3000 inside the container
+    environment:
+      DB_HOST: mongodb://mongo:27017/posts   # I am setting an environment variable so the app knows how to connect to Mongo
+                                             # "mongo" works because Docker creates an internal network between services
+    depends_on:
+      - mongo                       # telling Docker to start the mongo container before starting the app
+    restart: unless-stopped         # telling Docker to automatically restart the app container unless I manually stop it
+    command: >                      # I am overriding the default container command with a custom shell command
+      sh -c "
+      sleep 5 &&                    # I am waiting 5 seconds to give Mongo time to fully start
+      node seeds/seed.js &&         # I am running the database seed script to insert initial data
+      npm start                     # I am starting the NodeJS app
+      "
+
+volumes:                            # I am defining named Docker volumes
+  mongo_data:                       # This volume stores MongoDB data so it is not lost when the container stops

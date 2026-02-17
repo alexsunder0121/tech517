@@ -1,0 +1,43 @@
+# API version tells Kubernetes which version of the Deployment object schema to use
+apiVersion: apps/v1
+
+# The type of Kubernetes object creating
+kind: Deployment
+
+# Metadata contains identifying information about this Deployment
+metadata:
+  # The name of the Deployment inside the cluster
+  name: nginx-deployment
+
+# The specification defines the desired state of the Deployment
+spec:
+  # We want Kubernetes to always keep 3 identical Pods running
+  replicas: 3
+
+  # The selector tells the Deployment how to find the Pods it manages
+  selector:
+    matchLabels:
+      # This must match the labels defined below in template.metadata.labels
+      app: nginx
+
+  # Template defines what each Pod created by this Deployment should look like
+  template:
+    metadata:
+      # Labels applied to each Pod created
+      labels:
+        # This label connects Pods to the Deployment selector
+        app: nginx
+
+    spec:
+      # List of containers inside each Pod
+      containers:
+        # Name of the container inside the Pod
+        - name: nginx
+
+          # Docker image to use from Docker Hub
+          image: daraymonsta/nginx-257:dreamteam
+
+          # Ports that the container exposes internally
+          ports:
+            # The container listens on port 80
+            - containerPort: 80

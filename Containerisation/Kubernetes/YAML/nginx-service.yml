@@ -1,0 +1,16 @@
+apiVersion: v1                 # using the core Kubernetes API version for Services
+kind: Service                  # creating a Service object
+
+metadata:
+  name: nginx-svc              # naming my Service "nginx-svc"
+
+spec:
+  type: NodePort               # I am choosing NodePort so I can access the app from my browser using localhost
+
+  selector:
+    app: nginx                 # I am matching this Service to Pods that have the label app=nginx
+
+  ports:
+    - port: 80                 # This is the port the Service exposes inside the cluster
+      targetPort: 80           # This is the port inside the Pod where Nginx is running
+      nodePort: 30001          # This opens port 30001 on my machine and forwards traffic to port 80 in the Pod
