@@ -11,7 +11,7 @@ I created a Kubernetes Deployment called nginx-deployment with:
 	•	Container port 80
 
 ## Step 1: Create the YAML file
-See yml file for context and indentation
+Need to add snippet 
 
 ## Step 2: Create the Deployment in Kubernetes
 
@@ -50,12 +50,14 @@ I tried to access the Deployment using localhost or ClusterIP, but I couldn’t 
 A Deployment by itself does not expose anything outside the cluster.
 
 Kubernetes separates two responsibilities:
-	•	Deployments create and manage pods
-	•	Services expose pods to the network
+
+	• Deployments create and manage pods
+	• Services expose pods to the network
 
 Because I did not create a Service (ClusterIP, NodePort, LoadBalancer, or Ingress), there was no networking route that would allow me to open it in a browser.
 
 So I documented that:
-	•	ClusterIP is internal only
-	•	localhost won’t work without a Service or port forward
-	•	The Deployment is running, but not publicly reachable
+
+	• ClusterIP is internal only
+	• localhost won’t work without a Service or port forward
+	• The Deployment is running, but not publicly reachable

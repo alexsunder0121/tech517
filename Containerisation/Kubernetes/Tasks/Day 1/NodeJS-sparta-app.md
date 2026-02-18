@@ -8,7 +8,6 @@ I deployed the Sparta NodeJS test app to Kubernetes with 3 replicas, exposed it 
 
 This Deployment creates 3 replicas of the NodeJS app using the Docker image hosted on Docker Hub.
 
-
 #### I set replicas to 3 to demonstrate:
 
 • Kubernetes automatically maintains three running pods
@@ -129,7 +128,6 @@ env:
   - name: DB_HOST
     
     value: "mongodb://mongo-svc:27017/posts"
-
 
 Using the Service name instead of an IP ensures:
 1.	The connection survives pod restarts

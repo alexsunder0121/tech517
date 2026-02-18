@@ -32,7 +32,7 @@ If Endpoints is empty, it means the Service selector does not match the pod labe
 
 ## Step 5 – Test in the Browser
 
-http://localhost:30001 - If everything was configured correctly, I saw the Nginx welcome page.
+http://localhost:30001 - If everything was configured correctly, the Nginx welcome page displayed.
 
 
 

@@ -1,6 +1,6 @@
 # Task: Delete K8s deployments and services
 
-task was to delete the nginx-deployment Deployment and the nginx-svc Service using the original YAML manifest files, and then verify that all related resources such as ReplicaSets and Pods were also removed.
+task was to delete the nginx-deployment Deployment and the nginx-svc Service using the original YAML files, and then verify that all related resources such as ReplicaSets and Pods were also removed.
 
 ## Step 1 – Delete the Deployment Using the YAML File and Delete the Service Using the YAML File
 
