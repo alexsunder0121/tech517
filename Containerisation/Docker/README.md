@@ -42,6 +42,48 @@ Benefits
 * Make an application portable + easily to scale 
 * 
 
+### Are Microservices always the best solution?
+
+* No, because it adds complexity & challenges 
+* Distributed system - parts need to be talk each other 
+  * operational 
+  * devops - CI/CD pipelines 
+  * data - when different microservices use different databases 
+  * testing 
+
+**When is it best NOT to use microservices?**
+
+If:
+* You are a solo or small devlopment team or 
+* If the app is small or at the beginning of devloping an app 
+
+Then you'll move faster/move safely with a modular monolith 
+
+**What is a modular monolith**
+
+* one deployable unit 
+* usually uses domain-driven design to create internal module boundaries 
+  * Later, if you do decide you need to convert to a microservices architecture, you can more easily convert each module into a microservice 
+* Initially you may have a shared database for all modules, but it may evolve so that modules could have their own database
+
+**Examples of domains for an online shop**
+* Products 
+* Orders
+* Payments
+* Shipping
+* User/Accounts
+
+**When to move from a modular monolith to a microservice architecture**
+
+* When the complexity is worth it, for example:when...
+  * you have mulitple devloper teams 
+  * you need to be able to scale different parts of the application 
+  * you need higher isolation between the modules e.g.
+    * one part can change without breaking other parts of the application 
+    * one part of the application to be able to fail without breaking the whole application 
+    * one part to be able to scale indepently 
+    * one team to be able to work on a part of the application without interfering with other parts 
+    * one part of the application needs its own technology, database, deployment schedulue 
 
 ## Docker
 

@@ -1,5 +1,20 @@
 # Intro to Kubernetes
 
+## Some of the biggest challenges facing enterprises regarding their applications & how to run them
+
+* Many organisations may want to use Kubernetes, but 
+  * they need teams with the right expertise
+  * they need to abstract the complexity of kubernetes away from devlopers by using the right tools, methods, platforms 
+
+* Cybersecurity 
+
+* What to use AI effectively 
+
+* Migration to the cloud 
+  * Keep their data secure - all about data governance 
+  * often want to keep their data on-prem, so they need hybrid solutions 
+
+
 ## Why is Kubernetes needed
 * Manage container workloads, especially scaling
 
@@ -159,4 +174,20 @@
 
   * Cons
     * Dependent on the schedule of the maintaines for updates & patches 
-    * 
+
+##  Intro to types of autoscaling with K8s
+
+* Horizontal Pod Autoscaler (HPA) (most common)
+  * Scale the number of pods in a deployment, replicaset or statefulset based a metric such as observed CPU
+  * Configured using K8s resource definition(YAML)
+
+* Vertical Pod Autoscaler (VPA)
+  * Automatically adjust the resource request and limits of the containers in pods   
+  * Configured using K8s resource definition(YAML)
+  
+* Cluster Autoscaler 
+  * Automatically scale the size of the K8s cluster (number of nodes) based on pending pods & resource utilisation 
+ 
+ * Kubernetes Event-driven Autoscaling (KEDA)
+   * Provides fine-grained autoscaling based on a variety of event sources 
+   * Configure this, intergrate with HPA and also need additional setup 

@@ -88,4 +88,10 @@ This happened because:
 This demonstrates that HPA dynamically balances workload.
 
 
+* Further testing 
+
+I verified the HPA worked by generating traffic with Apache Bench against the NodePort service, watching kubectl get hpa -w and confirming Kubernetes scaled the deployment from the minimum replicas up to 7 based on CPU utilisation.”
+
+If you paste me your current HPA output (kubectl get hpa + kubectl describe hpa sparta-app-deployment), I’ll help you word the exact results section so it matches what your cluster actually did.
+
 
